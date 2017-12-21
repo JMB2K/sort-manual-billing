@@ -1,11 +1,21 @@
 import pandas as pd
 from collections import OrderedDict as OD
 import os
+import requests
+import re
 
 file = os.path.join(os.path.expanduser('~'), 'Desktop', 'manualEntryLog.xlsx')
 
 df = pd.read_excel(file)
 
+def getNum(name):
+    url = "http://www.corganinet.com/_applications/whois_V1/view_list_01.cfm"
+    payload = {'MySearch_01': name}
+    r=requests.post(url, data=payload)
+    return re.findall('EMID=([0-9]+)', r.text)[0]
+
+for i in range(1, len(df)):
+    df.loc[i, 'ORDERED BY'] = '{} - {}'.format(df.loc[i, 'ORDERED BY'], getNum(df.loc[i, 'ORDERED BY']))
 
 def filter_empty_entries(xDict):
     """
@@ -59,7 +69,7 @@ for entry in entryList:
     else:
         flag = True
 
-with open(os.path.join(os.path.expanduser('~'), 'Desktop', 'manualEntries.txt'), 'a') as f:
+with open(os.path.join(os.path.expanduser('~'), 'Desktop', 'manualEntries.txt'), 'w') as f:
     """
     this is all just formatting the way it
     prints to file so that its easy to read
