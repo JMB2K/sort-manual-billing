@@ -12,7 +12,10 @@ def getNum(name):
     url = "http://www.corganinet.com/_applications/whois_V1/view_list_01.cfm"
     payload = {'MySearch_01': name}
     r=requests.post(url, data=payload)
-    return re.findall('EMID=([0-9]+)', r.text)[0]
+    try:
+        return re.findall('EMID=([0-9]+)', r.text)[0]
+    except Exception:
+        return 'Name not found in locator'
 
 for i in range(1, len(df)):
     df.loc[i, 'ORDERED BY'] = '{} - {}'.format(df.loc[i, 'ORDERED BY'], getNum(df.loc[i, 'ORDERED BY']))
@@ -37,6 +40,8 @@ def filter_empty_entries(xDict):
     for k, v in xDict.items():
         if k != 'PROJECT NUMBER' and check_set[k]:
         # project num already used as key
+            if k.split()[1] in ['COPIES', 'ORIGS', 'COSTSHARE', 'TIME']:
+                v = int(v)
             if k.startswith('OCE'):
                 o[k.split()[1]] = v
             elif k.startswith('SMCLR'):
@@ -86,6 +91,7 @@ with open(os.path.join(os.path.expanduser('~'), 'Desktop', 'manualEntries.txt'),
                 else:
                     f.write('\t{}: {}'.format(k, v))
                     f.write('\n')
+            f.write('\n')
     f.close()
 
 
